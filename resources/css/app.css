@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Profile form: improve text contrast */
+.profile-form-enhanced {
+    color: #1e293b;
+}
+
+.profile-form-enhanced label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #334155 !important;
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.profile-form-enhanced input:not([type="checkbox"]),
+.profile-form-enhanced input:not([type="radio"]),
+.profile-form-enhanced select,
+.profile-form-enhanced textarea {
+    border-color: #cbd5e1 !important;
+    border-radius: 0.75rem;
+    background-color: #ffffff !important;
+    color: #0f172a !important;
+}
+
+.profile-form-enhanced input::placeholder,
+.profile-form-enhanced textarea::placeholder {
+    color: #64748b !important;
+    opacity: 1;
+}
+
+.profile-form-enhanced input:focus,
+.profile-form-enhanced textarea:focus,
+.profile-form-enhanced select:focus {
+    border-color: #244775 !important;
+    outline: 2px solid transparent;
+    box-shadow: 0 0 0 3px rgb(36 71 117 / 15%);
+}
+
+.profile-form-enhanced p {
+    color: #475569;
+}
+
+.profile-form-enhanced button {
+    border-radius: 0.75rem;
+    font-weight: 600;
+    transition: background-color 150ms ease;
+}
+
+.profile-form-enhanced button:focus-visible {
+    outline: 3px solid rgb(36 71 117 / 30%);
+    outline-offset: 2px;
+}
+
+.profile-form-enhanced button:not(:disabled) {
+    cursor: pointer;
+}
