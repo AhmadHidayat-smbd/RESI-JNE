@@ -47,7 +47,7 @@ const menuItems = [
 export default function AuthenticatedLayout({ header, children }) {
     const { auth } = usePage().props;
     const user = auth?.user;
-    const currentUrl = usePage().url;
+    const currentPath = usePage().url.split("?")[0];
 
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [profileOpen, setProfileOpen] = useState(false);
@@ -55,10 +55,10 @@ export default function AuthenticatedLayout({ header, children }) {
     // Active menu
     const isActive = (href) => {
         if (href === "/dashboard") {
-            return currentUrl === "/dashboard" || currentUrl === "/dashboard/";
+            return currentPath === "/dashboard" || currentPath === "/dashboard/";
         }
 
-        return currentUrl === href || currentUrl.startsWith(`${href}/`);
+        return currentPath === href || currentPath.startsWith(`${href}/`);
     };
 
     // User initials

@@ -854,7 +854,7 @@ export default function ResiIndex({ shipments, filters = {}, summary = {}, desti
                                                 {row.receiver_reason || "—"}
                                             </td> */}
                                             <td className="px-5 py-3.5">
-                                                <div className="flex items-center gap-1.5">
+                                                <div className="flex flex-col items-start gap-1.5">
                                                     <StatusBadge status={row.status} />
                                                     {row.action && (
                                                         <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${

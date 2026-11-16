@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Head, Link, router, usePage } from "@inertiajs/react";
 import RoleBasedLayout from "@/Layouts/RoleBasedLayout";
+import ModalNotification from "@/Components/ModalNotification";
 
 // ─── Konfigurasi Status Badge ─────────────────────────────────────────────────
 const STATUS_CFG = {
@@ -250,65 +251,28 @@ function ActionPanel({ shipment }) {
 }
 
 // ─── Komponen Notifikasi Berhasil / Gagal ────────────────────────────────────
-function FlashAlert({ flash }) {
-    const [visible, setVisible] = useState(false);
-
-    useEffect(() => {
-        if (flash?.success || flash?.error) {
-            setVisible(true);
-            const timer = setTimeout(() => setVisible(false), 5000);
-            return () => clearTimeout(timer);
-        }
-    }, [flash]);
-
-    if (!visible || (!flash?.success && !flash?.error)) return null;
-
-    const isSuccess = Boolean(flash?.success);
-
-    return (
-        <div
-            className={`flex items-center justify-between gap-3 rounded-2xl border p-4 shadow-sm transition-all duration-300 animate-fade-in ${
-                isSuccess
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                    : "border-red-200 bg-red-50 text-red-800"
-            }`}
-        >
-            <div className="flex items-center gap-3">
-                <span
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-base font-bold ${
-                        isSuccess ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600"
-                    }`}
-                >
-                    {isSuccess ? "✓" : "✕"}
-                </span>
-                <div>
-                    <p className="text-sm font-bold">{isSuccess ? "Berhasil Diperbarui!" : "Terjadi Kesalahan"}</p>
-                    <p className="text-xs opacity-90">{flash.success || flash.error}</p>
-                </div>
-            </div>
-            <button
-                type="button"
-                onClick={() => setVisible(false)}
-                className="rounded-lg p-1 text-slate-400 transition hover:text-slate-600"
-                title="Tutup notifikasi"
-            >
-                ✕
-            </button>
-        </div>
-    );
-}
-
-// ─── Halaman Detail Resi ──────────────────────────────────────────────────────
 export default function ResiShow({ shipment, slaEvaluation }) {
     const { flash, auth } = usePage().props;
     const isAdmin = auth?.user?.role === "admin";
     const [previewPhoto, setPreviewPhoto] = useState(null);
+    const [notice, setNotice] = useState(null);
     const returnUrl = typeof window === "undefined"
         ? null
         : new URLSearchParams(window.location.search).get("return_url");
     const backUrl = returnUrl && /^\/resi(?:\?|$)/.test(returnUrl)
         ? returnUrl
         : "/resi";
+
+    useEffect(() => {
+        const message = flash?.success || flash?.error;
+        if (!message) return;
+
+        setNotice({
+            type: flash.success ? "success" : "error",
+            title: flash.success ? "Berhasil Diperbarui" : "Terjadi Kesalahan",
+            message,
+        });
+    }, [flash]);
 
     useEffect(() => {
         if (!previewPhoto) return;
@@ -342,10 +306,15 @@ export default function ResiShow({ shipment, slaEvaluation }) {
         <RoleBasedLayout header="Detail Resi">
             <Head title={`Detail Resi ${shipment.awb}`} />
 
-            <div className="space-y-6">
-                {/* Notifikasi Flash */}
-                <FlashAlert flash={flash} />
+            <ModalNotification
+                notice={notice}
+                onClose={() => setNotice(null)}
+                duration={8000}
+                showImportHints={false}
+                showActions={false}
+            />
 
+            <div className="space-y-6">
                 {/* Back + Header */}
                 <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>

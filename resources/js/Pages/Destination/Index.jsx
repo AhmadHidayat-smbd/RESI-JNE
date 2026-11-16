@@ -4,55 +4,6 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
 import LoaderOverlay from "@/Components/LoaderOverlay";
 import ModalNotification from "@/Components/ModalNotification";
 
-// ─── Komponen Notifikasi Flash ───────────────────────────────────────────────
-function FlashAlert({ flash }) {
-    const [visible, setVisible] = useState(false);
-
-    useEffect(() => {
-        if (flash?.success || flash?.error) {
-            setVisible(true);
-            const timer = setTimeout(() => setVisible(false), 5000);
-            return () => clearTimeout(timer);
-        }
-    }, [flash]);
-
-    if (!visible || (!flash?.success && !flash?.error)) return null;
-
-    const isSuccess = Boolean(flash?.success);
-
-    return (
-        <div
-            className={`flex items-center justify-between gap-3 rounded-2xl border p-4 shadow-sm transition-all duration-300 ${
-                isSuccess
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-                    : "border-red-200 bg-red-50 text-red-800"
-            }`}
-        >
-            <div className="flex items-center gap-3">
-                <span
-                    className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-base font-bold ${
-                        isSuccess ? "bg-emerald-100 text-emerald-600" : "bg-red-100 text-red-600"
-                    }`}
-                >
-                    {isSuccess ? "✓" : "✕"}
-                </span>
-                <div>
-                    <p className="text-sm font-bold">{isSuccess ? "Berhasil!" : "Gagal"}</p>
-                    <p className="text-xs opacity-90">{flash.success || flash.error}</p>
-                </div>
-            </div>
-            <button
-                type="button"
-                onClick={() => setVisible(false)}
-                className="rounded-lg p-1 text-slate-400 transition hover:text-slate-600"
-                title="Tutup notifikasi"
-            >
-                ✕
-            </button>
-        </div>
-    );
-}
-
 // ─── Form Data Daerah ────────────────────────────────────────────────────────
 function DestinationForm({ editing, onCancel }) {
     const [form, setForm] = useState({
@@ -261,6 +212,18 @@ export default function DestinationIndex({ destinations, filters = {} }) {
     const [importing, setImporting]         = useState(false);
     const [importProgress, setImportProgress] = useState(null);
 
+    useEffect(() => {
+        const message = flash?.success || flash?.error;
+        if (!message) return;
+
+        setNotice({
+            type: flash.success ? "success" : "error",
+            title: flash.success ? "Berhasil" : "Gagal",
+            message,
+            showActions: false,
+        });
+    }, [flash]);
+
     const getCsrfToken = useCallback(() => {
         const match = document.cookie.match(/XSRF-TOKEN=([^;]+)/);
         return match ? decodeURIComponent(match[1]) : "";
@@ -286,19 +249,10 @@ export default function DestinationIndex({ destinations, filters = {} }) {
             return;
         }
 
-        const errorMessage = String(result.error || "Import gagal diproses. Silakan periksa file dan coba kembali.")
-            .replace(/[&<>"']/g, (character) => ({
-                "&": "&amp;",
-                "<": "&lt;",
-                ">": "&gt;",
-                '"': "&quot;",
-                "'": "&#039;",
-            })[character]);
-
         setNotice({
             type: "error",
             title: "Import Data Daerah Gagal",
-            message: errorMessage,
+            message: result.error || "Import gagal diproses. Silakan periksa file dan coba kembali.",
             progress: result,
             time: new Date().toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" }),
         });
@@ -430,14 +384,12 @@ export default function DestinationIndex({ destinations, filters = {} }) {
                 onClose={handleCloseOverlay}
                 duration={10000}
                 showImportHints={false}
+                showActions={notice?.showActions ?? true}
                 successHref="/destinations"
                 successLabel="Lihat Data Daerah"
             />
 
             <div className="space-y-6">
-                {/* Flash Notification */}
-                <FlashAlert flash={flash} />
-
                 {/* Page Header */}
                 <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>

@@ -1,13 +1,12 @@
 import { useForm } from "@inertiajs/react";
 
-export default function UpdatePasswordForm({ className = "" }) {
+export default function UpdatePasswordForm({ onSaved, className = "" }) {
     const {
         data,
         setData,
         put,
         errors,
         processing,
-        recentlySuccessful,
         reset,
     } = useForm({
         current_password: "",
@@ -20,7 +19,10 @@ export default function UpdatePasswordForm({ className = "" }) {
 
         put(route("password.update"), {
             preserveScroll: true,
-            onSuccess: () => reset(),
+            onSuccess: () => {
+                reset();
+                onSaved?.();
+            },
         });
     };
 
@@ -136,14 +138,6 @@ export default function UpdatePasswordForm({ className = "" }) {
                         {processing ? "Memperbarui..." : "Perbarui Password"}
                     </button>
 
-                    {recentlySuccessful && (
-                        <p
-                            role="status"
-                            className="text-sm font-semibold text-emerald-700"
-                        >
-                            Password berhasil diperbarui.
-                        </p>
-                    )}
                 </div>
             </form>
         </section>

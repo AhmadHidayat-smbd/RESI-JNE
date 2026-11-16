@@ -11,6 +11,7 @@ export default function ModalNotification({
     onClose,
     duration = 8000,
     showImportHints = true,
+    showActions = true,
     successHref = "/resi",
     successLabel = "Lihat Monitoring Resi",
 }) {
@@ -167,8 +168,9 @@ export default function ModalNotification({
                     {/* Message */}
                     <div
                         className="mt-2 text-sm leading-relaxed text-slate-600"
-                        dangerouslySetInnerHTML={{ __html: notice.message }}
-                    />
+                    >
+                        {notice.message}
+                    </div>
 
                     {hasImportProgress && (
                         <div className={`mt-5 rounded-2xl border p-4 ${isError ? "border-red-100 bg-red-50/60" : "border-slate-200 bg-slate-50/80"}`}>
@@ -293,7 +295,8 @@ export default function ModalNotification({
                     )}
 
                     {/* Action buttons */}
-                    <div className="mt-6 flex flex-wrap items-center gap-2.5">
+                    {showActions && (
+                        <div className="mt-6 flex flex-wrap items-center gap-2.5">
                         {isSuccess && (
                             <>
                                 <Link
@@ -351,7 +354,8 @@ export default function ModalNotification({
                                 Oke, Tutup
                             </button>
                         )}
-                    </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

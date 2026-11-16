@@ -3,12 +3,12 @@ import { useEffect } from "react";
 
 export default function UpdateProfileInformationForm({
     mustVerifyEmail,
-    status,
+    onSaved,
     className = "",
 }) {
     const user = usePage().props.auth.user;
 
-    const { data, setData, patch, errors, processing, recentlySuccessful } =
+    const { data, setData, patch, errors, processing } =
         useForm({
             name: user.name || "",
             email: user.email || "",
@@ -23,7 +23,7 @@ export default function UpdateProfileInformationForm({
 
     const submit = (e) => {
         e.preventDefault();
-        patch(route("profile.update"));
+        patch(route("profile.update"), { onSuccess: onSaved });
     };
 
     return (
@@ -101,11 +101,6 @@ export default function UpdateProfileInformationForm({
                             Kirim ulang email verifikasi
                         </a>
 
-                        {status === "verification-link-sent" && (
-                            <p className="mt-2 text-sm font-medium text-emerald-700">
-                                Link verifikasi baru telah dikirim.
-                            </p>
-                        )}
                     </div>
                 )}
 
@@ -119,14 +114,6 @@ export default function UpdateProfileInformationForm({
                         {processing ? "Menyimpan..." : "Simpan Perubahan"}
                     </button>
 
-                    {recentlySuccessful && (
-                        <p
-                            role="status"
-                            className="text-sm font-semibold text-emerald-700"
-                        >
-                            Perubahan berhasil disimpan.
-                        </p>
-                    )}
                 </div>
             </form>
         </section>

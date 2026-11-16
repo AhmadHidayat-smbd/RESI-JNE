@@ -1,5 +1,7 @@
 import RoleBasedLayout from "@/Layouts/RoleBasedLayout";
 import { Head, usePage } from "@inertiajs/react";
+import { useEffect, useState } from "react";
+import ModalNotification from "@/Components/ModalNotification";
 
 import DeleteUserForm from "./Partials/DeleteUserForm";
 import UpdatePasswordForm from "./Partials/UpdatePasswordForm";
@@ -9,6 +11,19 @@ export default function Edit({ mustVerifyEmail, status }) {
     const { auth } = usePage().props;
     const user = auth?.user;
     const isAdmin = user?.role === "admin";
+    const [notice, setNotice] = useState(null);
+
+    useEffect(() => {
+        if (!status) return;
+
+        setNotice({
+            type: "success",
+            title: "Berhasil",
+            message: status === "verification-link-sent"
+                ? "Link verifikasi baru telah dikirim."
+                : status,
+        });
+    }, [status]);
 
     const initials = (user?.name || "Admin")
         .split(" ")
@@ -21,6 +36,14 @@ export default function Edit({ mustVerifyEmail, status }) {
     return (
         <RoleBasedLayout header="Pengaturan Profil">
             <Head title="Pengaturan Profil" />
+
+            <ModalNotification
+                notice={notice}
+                onClose={() => setNotice(null)}
+                duration={8000}
+                showImportHints={false}
+                showActions={false}
+            />
 
             <div className="mx-auto max-w-6xl space-y-7">
                 {/* Page Heading */}
@@ -104,7 +127,11 @@ export default function Edit({ mustVerifyEmail, status }) {
                     <div className="p-6 sm:p-8">
                         <UpdateProfileInformationForm
                             mustVerifyEmail={mustVerifyEmail}
-                            status={status}
+                            onSaved={() => setNotice({
+                                type: "success",
+                                title: "Profil Berhasil Diperbarui",
+                                message: "Perubahan informasi profil berhasil disimpan.",
+                            })}
                             className="profile-form-enhanced max-w-3xl"
                         />
                     </div>
@@ -144,7 +171,14 @@ export default function Edit({ mustVerifyEmail, status }) {
                     </div>
 
                     <div className="p-6 sm:p-8">
-                        <UpdatePasswordForm className="profile-form-enhanced max-w-3xl" />
+                        <UpdatePasswordForm
+                            onSaved={() => setNotice({
+                                type: "success",
+                                title: "Password Berhasil Diperbarui",
+                                message: "Password akun Anda berhasil diperbarui.",
+                            })}
+                            className="profile-form-enhanced max-w-3xl"
+                        />
                     </div>
                 </section>
 
@@ -183,14 +217,6 @@ export default function Edit({ mustVerifyEmail, status }) {
                     </section>
                 )}
 
-                {status && (
-                    <div
-                        role="status"
-                        className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm font-medium text-emerald-800"
-                    >
-                        {status}
-                    </div>
-                )}
             </div>
         </RoleBasedLayout>
     );

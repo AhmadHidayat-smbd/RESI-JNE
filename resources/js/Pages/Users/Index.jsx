@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Head, Link, router, useForm, usePage } from "@inertiajs/react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import ModalNotification from "@/Components/ModalNotification";
 
 const EMPTY_FORM = {
     name: "",
@@ -158,11 +159,32 @@ export default function UserIndex({ users, filters = {}, roleCounts = {} }) {
     const [role, setRole] = useState(filters.role || "");
     const [formOpen, setFormOpen] = useState(false);
     const [editing, setEditing] = useState(null);
+    const [notice, setNotice] = useState(null);
 
     useEffect(() => {
         setSearch(filters.search || "");
         setRole(filters.role || "");
     }, [filters.search, filters.role]);
+
+    useEffect(() => {
+        if (flash?.success) {
+            setNotice({
+                type: "success",
+                title: "Berhasil",
+                message: flash.success,
+            });
+            return;
+        }
+
+        const errorMessage = flash?.error || errors.user;
+        if (errorMessage) {
+            setNotice({
+                type: "error",
+                title: "Gagal Mengelola Pengguna",
+                message: errorMessage,
+            });
+        }
+    }, [flash?.success, flash?.error, errors.user]);
 
     const closeForm = () => {
         setFormOpen(false);
@@ -197,6 +219,14 @@ export default function UserIndex({ users, filters = {}, roleCounts = {} }) {
         <AuthenticatedLayout header="Manajemen Pengguna">
             <Head title="Manajemen Pengguna" />
 
+            <ModalNotification
+                notice={notice}
+                onClose={() => setNotice(null)}
+                duration={8000}
+                showImportHints={false}
+                showActions={false}
+            />
+
             <div className="space-y-6">
                 <section className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                     <div>
@@ -213,17 +243,6 @@ export default function UserIndex({ users, filters = {}, roleCounts = {} }) {
                         <span aria-hidden="true">＋</span> Tambah Pengguna
                     </button>
                 </section>
-
-                {flash?.success && (
-                    <div role="status" className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
-                        {flash.success}
-                    </div>
-                )}
-                {errors.user && (
-                    <div role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700">
-                        {errors.user}
-                    </div>
-                )}
 
                 <section className="grid gap-4 sm:grid-cols-2">
                     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -252,7 +271,7 @@ export default function UserIndex({ users, filters = {}, roleCounts = {} }) {
                             value={role}
                             onChange={(event) => setRole(event.target.value)}
                             aria-label="Filter berdasarkan role"
-                            className="rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-800 focus:bg-white"
+                            className="w-full shrink-0 whitespace-nowrap rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm text-slate-700 outline-none focus:border-blue-800 focus:bg-white sm:w-44"
                         >
                             <option value="">Semua Role</option>
                             <option value="admin">Admin</option>
