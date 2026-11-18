@@ -313,8 +313,28 @@ class ShipmentController extends Controller
         );
     }
 
-    // ─── Import File ─────────────────────────────────────────────────────────
+    // Catatan umum resi.
+    public function updateNotes(Request $request, Shipment $shipment)
+    {
+        $validated = $request->validate([
+            'notes' => ['required', 'string', 'max:5000'],
+        ]);
 
+        $shipment->update([
+            'notes' => trim($validated['notes']),
+        ]);
+
+        return back()->with('success', 'Catatan resi berhasil disimpan.');
+    }
+
+    public function deleteNotes(Shipment $shipment)
+    {
+        $shipment->update(['notes' => null]);
+
+        return back()->with('success', 'Catatan resi berhasil dihapus.');
+    }
+
+    // Halaman import resi.
     public function importView()
     {
         $batches = Shipment::select('import_batch')

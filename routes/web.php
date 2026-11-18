@@ -35,6 +35,8 @@ Route::middleware('auth')->prefix('resi')->name('resi.')->group(function () {
             ->name('import.cancel');
         Route::delete('/batch', [ShipmentController::class, 'deleteBatch'])->name('batch.delete');
         Route::patch('/{shipment}/action', [ShipmentController::class, 'updateAction'])->name('action');
+        Route::patch('/{shipment}/notes', [ShipmentController::class, 'updateNotes'])->name('notes.update');
+        Route::delete('/{shipment}/notes', [ShipmentController::class, 'deleteNotes'])->name('notes.delete');
     });
 });
 

@@ -1,32 +1,41 @@
 import { useState, useEffect } from "react";
-import { Head, Link, router, usePage } from "@inertiajs/react";
+import { Head, Link, router, useForm, usePage } from "@inertiajs/react";
 import RoleBasedLayout from "@/Layouts/RoleBasedLayout";
 import ModalNotification from "@/Components/ModalNotification";
 
 // ─── Konfigurasi Status Badge ─────────────────────────────────────────────────
 const STATUS_CFG = {
-    Success:      { cls: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500" },
-    Failed:       { cls: "bg-red-50 text-red-700 border-red-200",             dot: "bg-red-500" },
-    "On Delivery":{ cls: "bg-blue-50 text-blue-700 border-blue-200",          dot: "bg-blue-500" },
-    "On Process": { cls: "bg-amber-50 text-amber-700 border-amber-200",       dot: "bg-amber-500" },
+    Success: {
+        cls: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        dot: "bg-emerald-500",
+    },
+    Failed: { cls: "bg-red-50 text-red-700 border-red-200", dot: "bg-red-500" },
+    "On Delivery": {
+        cls: "bg-blue-50 text-blue-700 border-blue-200",
+        dot: "bg-blue-500",
+    },
+    "On Process": {
+        cls: "bg-amber-50 text-amber-700 border-amber-200",
+        dot: "bg-amber-500",
+    },
 };
 
 // ─── Konfigurasi Aksi Hold / Cancel ──────────────────────────────────────────
 const ACTION_CFG = {
     hold: {
-        label:       "Hold",
-        desc:        "Resi ditahan sementara, status asli tidak berubah.",
-        badgeCls:    "bg-orange-50 text-orange-700 border border-orange-200",
-        activeCls:   "border-orange-400 ring-2 ring-orange-300 bg-orange-50",
-        btnCls:      "bg-orange-500 hover:bg-orange-600",
+        label: "Hold",
+        desc: "Resi ditahan sementara, status asli tidak berubah.",
+        badgeCls: "bg-orange-50 text-orange-700 border border-orange-200",
+        activeCls: "border-orange-400 ring-2 ring-orange-300 bg-orange-50",
+        btnCls: "bg-orange-500 hover:bg-orange-600",
         placeholder: "Alasan hold (wajib diisi)...",
     },
     cancel: {
-        label:       "Cancel",
-        desc:        "Resi dibatalkan, status asli tidak berubah.",
-        badgeCls:    "bg-red-50 text-red-700 border border-red-200",
-        activeCls:   "border-red-400 ring-2 ring-red-300 bg-red-50",
-        btnCls:      "bg-red-500 hover:bg-red-600",
+        label: "Cancel",
+        desc: "Resi dibatalkan, status asli tidak berubah.",
+        badgeCls: "bg-red-50 text-red-700 border border-red-200",
+        activeCls: "border-red-400 ring-2 ring-red-300 bg-red-50",
+        btnCls: "bg-red-500 hover:bg-red-600",
         placeholder: "Alasan cancel (wajib diisi)...",
     },
 };
@@ -34,17 +43,47 @@ const ACTION_CFG = {
 // ─── Helper: Format tanggal & jam tanpa pergeseran timezone ──────────────────
 function formatDateTime(val) {
     if (!val) return null;
-    const m = String(val).trim().match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/);
+    const m = String(val)
+        .trim()
+        .match(/^(\d{4})-(\d{2})-(\d{2})[T\s](\d{2}):(\d{2})/);
     if (!m) return String(val);
-    const MONTHS = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+    const MONTHS = [
+        "Januari",
+        "Februari",
+        "Maret",
+        "April",
+        "Mei",
+        "Juni",
+        "Juli",
+        "Agustus",
+        "September",
+        "Oktober",
+        "November",
+        "Desember",
+    ];
     return `${parseInt(m[3], 10)} ${MONTHS[parseInt(m[2], 10) - 1]} ${m[1]}, pukul ${m[4]}:${m[5]} WIB`;
 }
 
 function formatDate(val) {
     if (!val) return null;
-    const m = String(val).trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+    const m = String(val)
+        .trim()
+        .match(/^(\d{4})-(\d{2})-(\d{2})/);
     if (!m) return String(val);
-    const MONTHS = ["Januari","Februari","Maret","April","Mei","Juni","Juli","Agustus","September","Oktober","November","Desember"];
+    const MONTHS = [
+        "Januari",
+        "Februari",
+        "Maret",
+        "April",
+        "Mei",
+        "Juni",
+        "Juli",
+        "Agustus",
+        "September",
+        "Oktober",
+        "November",
+        "Desember",
+    ];
     return `${parseInt(m[3], 10)} ${MONTHS[parseInt(m[2], 10) - 1]} ${m[1]}`;
 }
 
@@ -52,7 +91,9 @@ function formatDate(val) {
 function Field({ label, value }) {
     return (
         <div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">{label}</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                {label}
+            </p>
             <p className="mt-1 text-sm text-slate-700">
                 {value ?? <span className="italic text-slate-300">—</span>}
             </p>
@@ -71,17 +112,25 @@ function SlaEvaluationCard({ evaluation }) {
         early: `Lebih cepat ${evaluation.difference_days} hari`,
         late: `Terlambat ${evaluation.difference_days} hari`,
     };
-    const stateStyle = styles[evaluation?.state] ?? "border-slate-200 bg-slate-50 text-slate-600";
+    const stateStyle =
+        styles[evaluation?.state] ??
+        "border-slate-200 bg-slate-50 text-slate-600";
 
     return (
         <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
             <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                    <h2 className="font-bold text-[#10264A]">Evaluasi SLA Pengiriman</h2>
-                    <p className="mt-1 text-xs text-slate-500">Mengacu pada SLA di data destination resi.</p>
+                    <h2 className="font-bold text-[#10264A]">
+                        Evaluasi SLA Pengiriman
+                    </h2>
+                    <p className="mt-1 text-xs text-slate-500">
+                        Mengacu pada SLA di data destination resi.
+                    </p>
                 </div>
                 {titles[evaluation?.state] && (
-                    <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${stateStyle}`}>
+                    <span
+                        className={`rounded-full border px-3 py-1 text-xs font-semibold ${stateStyle}`}
+                    >
                         {titles[evaluation.state]}
                     </span>
                 )}
@@ -90,27 +139,37 @@ function SlaEvaluationCard({ evaluation }) {
             {evaluation?.sla_days && (
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                     <div className="rounded-xl bg-slate-50 p-4">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">SLA JNE</p>
-                        <p className="mt-1 text-lg font-bold text-[#10264A]">{evaluation.sla_days} hari</p>
+                        <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                            SLA JNE
+                        </p>
+                        <p className="mt-1 text-lg font-bold text-[#10264A]">
+                            {evaluation.sla_days} hari
+                        </p>
                     </div>
                     {evaluation.delivery_days && (
                         <div className="rounded-xl bg-slate-50 p-4">
-                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">Lama Pengiriman</p>
-                            <p className="mt-1 text-lg font-bold text-[#10264A]">{evaluation.delivery_days} hari</p>
+                            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                Lama Pengiriman
+                            </p>
+                            <p className="mt-1 text-lg font-bold text-[#10264A]">
+                                {evaluation.delivery_days} hari
+                            </p>
                         </div>
                     )}
                 </div>
             )}
 
             <p className={`mt-4 rounded-xl border p-3 text-sm ${stateStyle}`}>
-                {evaluation?.message ?? (evaluation?.state === "on_time"
-                    ? "Pengiriman tiba sesuai batas SLA."
-                    : evaluation?.state === "early"
-                        ? "Pengiriman tiba sebelum batas SLA."
-                        : "Pengiriman tiba setelah batas SLA.")}
+                {evaluation?.message ??
+                    (evaluation?.state === "on_time"
+                        ? "Pengiriman tiba sesuai batas SLA."
+                        : evaluation?.state === "early"
+                          ? "Pengiriman tiba sebelum batas SLA."
+                          : "Pengiriman tiba setelah batas SLA.")}
             </p>
             <p className="mt-3 text-[11px] text-slate-400">
-                Perhitungan memakai hari kalender dan menghitung tanggal entry sebagai hari pertama.
+                Perhitungan memakai hari kalender dan menghitung tanggal entry
+                sebagai hari pertama.
             </p>
         </section>
     );
@@ -118,8 +177,8 @@ function SlaEvaluationCard({ evaluation }) {
 
 // ─── Komponen Panel Aksi Hold / Cancel ───────────────────────────────────────
 function ActionPanel({ shipment }) {
-    const [selected, setSelected]     = useState(shipment.action ?? "");
-    const [note, setNote]             = useState(shipment.action_note ?? "");
+    const [selected, setSelected] = useState(shipment.action ?? "");
+    const [note, setNote] = useState(shipment.action_note ?? "");
     const [submitting, setSubmitting] = useState(false);
 
     const handleSelect = (key) => {
@@ -141,7 +200,7 @@ function ActionPanel({ shipment }) {
                     setNote("");
                 },
                 onFinish: () => setSubmitting(false),
-            }
+            },
         );
     };
 
@@ -153,9 +212,12 @@ function ActionPanel({ shipment }) {
             { action: null, note: null },
             {
                 preserveScroll: true,
-                onSuccess: () => { setSelected(""); setNote(""); },
-                onFinish:  () => setSubmitting(false),
-            }
+                onSuccess: () => {
+                    setSelected("");
+                    setNote("");
+                },
+                onFinish: () => setSubmitting(false),
+            },
         );
     };
 
@@ -176,13 +238,19 @@ function ActionPanel({ shipment }) {
                         type="button"
                         onClick={() => handleSelect(key)}
                         className={`flex-1 rounded-xl border p-3 text-left text-sm transition ${
-                            selected === key ? cfg.activeCls : "border-slate-200 hover:border-slate-300"
+                            selected === key
+                                ? cfg.activeCls
+                                : "border-slate-200 hover:border-slate-300"
                         }`}
                     >
-                        <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${cfg.badgeCls}`}>
+                        <span
+                            className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-bold ${cfg.badgeCls}`}
+                        >
                             {cfg.label}
                         </span>
-                        <p className="mt-1.5 text-[11px] font-normal text-slate-500">{cfg.desc}</p>
+                        <p className="mt-1.5 text-[11px] font-normal text-slate-500">
+                            {cfg.desc}
+                        </p>
                     </button>
                 ))}
             </div>
@@ -204,11 +272,16 @@ function ActionPanel({ shipment }) {
                             disabled={submitting || !note.trim()}
                             className={`flex-1 rounded-xl px-4 py-2 text-sm font-semibold text-white transition disabled:opacity-50 ${activeCfg.btnCls}`}
                         >
-                            {submitting ? "Menyimpan..." : `Simpan ${activeCfg.label}`}
+                            {submitting
+                                ? "Menyimpan..."
+                                : `Simpan ${activeCfg.label}`}
                         </button>
                         <button
                             type="button"
-                            onClick={() => { setSelected(""); setNote(""); }}
+                            onClick={() => {
+                                setSelected("");
+                                setNote("");
+                            }}
                             className="rounded-xl border border-slate-200 px-4 py-2 text-sm font-medium text-slate-500 transition hover:bg-slate-50"
                         >
                             Batal
@@ -219,16 +292,22 @@ function ActionPanel({ shipment }) {
 
             {/* Info aksi yang sudah tersimpan */}
             {!selected && shipment.action && ACTION_CFG[shipment.action] && (
-                <div className={`flex items-start justify-between rounded-xl border p-3 ${ACTION_CFG[shipment.action].badgeCls}`}>
+                <div
+                    className={`flex items-start justify-between rounded-xl border p-3 ${ACTION_CFG[shipment.action].badgeCls}`}
+                >
                     <div>
                         <p className="text-xs font-bold uppercase tracking-wide">
                             {ACTION_CFG[shipment.action].label} aktif
                         </p>
                         {shipment.action_note && (
-                            <p className="mt-1 text-xs">{shipment.action_note}</p>
+                            <p className="mt-1 text-xs">
+                                {shipment.action_note}
+                            </p>
                         )}
                         {shipment.actioned_at && (
-                            <p className="mt-1 text-[10px] opacity-60">{formatDateTime(shipment.actioned_at)}</p>
+                            <p className="mt-1 text-[10px] opacity-60">
+                                {formatDateTime(shipment.actioned_at)}
+                            </p>
                         )}
                     </div>
                     <button
@@ -244,8 +323,112 @@ function ActionPanel({ shipment }) {
 
             {/* Belum ada aksi */}
             {!selected && !shipment.action && (
-                <p className="text-xs italic text-slate-400">Belum ada aksi untuk resi ini.</p>
+                <p className="text-xs italic text-slate-400">
+                    Belum ada aksi untuk resi ini.
+                </p>
             )}
+        </div>
+    );
+}
+
+function ShipmentNotesPanel({ shipment, isAdmin }) {
+    const {
+        data,
+        setData,
+        patch,
+        delete: destroy,
+        processing,
+        errors,
+    } = useForm({
+        notes: shipment.notes ?? "",
+    });
+    const savedNotes = shipment.notes ?? "";
+    const hasSavedNotes = Boolean(savedNotes.trim());
+    const hasChanges = data.notes.trim() !== savedNotes.trim();
+
+    useEffect(() => {
+        setData("notes", shipment.notes ?? "");
+    }, [setData, shipment.id, shipment.notes]);
+
+    const handleSave = (event) => {
+        event.preventDefault();
+        if (!data.notes.trim() || !hasChanges) return;
+
+        patch(`/resi/${shipment.id}/notes`, { preserveScroll: true });
+    };
+
+    const handleDelete = () => {
+        if (!hasSavedNotes || !window.confirm("Hapus catatan untuk resi ini?"))
+            return;
+
+        destroy(`/resi/${shipment.id}/notes`, { preserveScroll: true });
+    };
+
+    if (!isAdmin) {
+        return (
+            <div className="sm:col-span-2">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                    Catatan
+                </p>
+                {hasSavedNotes ? (
+                    <p className="mt-1 whitespace-pre-wrap break-words text-sm text-slate-700">
+                        {savedNotes}
+                    </p>
+                ) : (
+                    <p className="mt-1 text-sm italic text-slate-400">
+                        Belum ada catatan.
+                    </p>
+                )}
+            </div>
+        );
+    }
+
+    return (
+        <div className="sm:col-span-2">
+            <label
+                htmlFor="shipment-notes"
+                className="mb-1.5 block text-xs font-semibold uppercase tracking-wide text-slate-400"
+            >
+                Catatan
+            </label>
+            <form onSubmit={handleSave}>
+                <div className="flex flex-col gap-3 sm:grid sm:grid-cols-[minmax(0,1fr)_auto]">
+                    <textarea
+                        id="shipment-notes"
+                        value={data.notes}
+                        onChange={(event) =>
+                            setData("notes", event.target.value)
+                        }
+                        rows={4}
+                        maxLength={5000}
+                        placeholder="Tambahkan catatan untuk resi ini..."
+                        aria-invalid={Boolean(errors.notes)}
+                        className="min-w-0 w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700 outline-none transition placeholder:text-slate-400 focus:border-blue-800 focus:bg-white focus:ring-2 focus:ring-blue-900/10"
+                    />
+                    <div className="flex gap-2 sm:w-40 sm:flex-col">
+                        <button
+                            type="submit"
+                            disabled={
+                                processing || !data.notes.trim() || !hasChanges
+                            }
+                            className="flex-1 rounded-xl bg-[#10264A] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#193965] disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                            {processing ? "Menyimpan..." : "Simpan Catatan"}
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleDelete}
+                            disabled={processing || !hasSavedNotes}
+                            className="flex-1 rounded-xl border border-red-200 px-4 py-2.5 text-sm font-semibold text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-40"
+                        >
+                            Hapus Catatan
+                        </button>
+                    </div>
+                </div>
+                {errors.notes && (
+                    <p className="mt-1 text-xs text-red-600">{errors.notes}</p>
+                )}
+            </form>
         </div>
     );
 }
@@ -256,12 +439,12 @@ export default function ResiShow({ shipment, slaEvaluation }) {
     const isAdmin = auth?.user?.role === "admin";
     const [previewPhoto, setPreviewPhoto] = useState(null);
     const [notice, setNotice] = useState(null);
-    const returnUrl = typeof window === "undefined"
-        ? null
-        : new URLSearchParams(window.location.search).get("return_url");
-    const backUrl = returnUrl && /^\/resi(?:\?|$)/.test(returnUrl)
-        ? returnUrl
-        : "/resi";
+    const returnUrl =
+        typeof window === "undefined"
+            ? null
+            : new URLSearchParams(window.location.search).get("return_url");
+    const backUrl =
+        returnUrl && /^\/resi(?:\?|$)/.test(returnUrl) ? returnUrl : "/resi";
 
     useEffect(() => {
         const message = flash?.success || flash?.error;
@@ -332,7 +515,9 @@ export default function ResiShow({ shipment, slaEvaluation }) {
                         </p>
                     </div>
 
-                    <span className={`inline-flex w-fit items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold ${cfg.cls}`}>
+                    <span
+                        className={`inline-flex w-fit items-center gap-2 rounded-full border px-4 py-2 text-sm font-semibold ${cfg.cls}`}
+                    >
                         <span className={`h-2 w-2 rounded-full ${cfg.dot}`} />
                         {shipment.status || "—"}
                     </span>
@@ -344,38 +529,91 @@ export default function ResiShow({ shipment, slaEvaluation }) {
                 <div className="grid gap-5 lg:grid-cols-3">
                     {/* Informasi Pengiriman */}
                     <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm lg:col-span-2">
-                        <h2 className="mb-5 font-bold text-[#10264A]">Informasi Pengiriman</h2>
+                        <h2 className="mb-5 font-bold text-[#10264A]">
+                            Informasi Pengiriman
+                        </h2>
                         <div className="grid gap-5 sm:grid-cols-2">
-                            <Field label="No AWB / Resi"      value={shipment.awb} />
-                            <Field label="Runsheet No"         value={shipment.runsheet_no} />
-                            <Field label="Tanggal & Jam Entry" value={formatDateTime(shipment.tgl_jam_entry)} />
-                            <Field label="Tanggal Received"    value={formatDate(shipment.tgl_received)} />
-                            <Field label="Kode Asal"           value={shipment.origin_code} />
-                            <Field label="Kode Tujuan"         value={shipment.destination_code} />
+                            <Field label="No AWB / Resi" value={shipment.awb} />
+                            <Field
+                                label="Runsheet No"
+                                value={shipment.runsheet_no}
+                            />
+                            <Field
+                                label="Tanggal & Jam Entry"
+                                value={formatDateTime(shipment.tgl_jam_entry)}
+                            />
+                            <Field
+                                label="Tanggal Received"
+                                value={formatDate(shipment.tgl_received)}
+                            />
+                            <Field
+                                label="Kode Asal"
+                                value={shipment.origin_code}
+                            />
+                            <Field
+                                label="Kode Tujuan"
+                                value={shipment.destination_code}
+                            />
                             <div>
-                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">3LC</p>
+                                <p className="text-xs font-semibold uppercase tracking-wide text-slate-400">
+                                    3LC
+                                </p>
                                 <p className="mt-1 text-sm text-slate-700">
                                     {shipment.destination_code ? (
                                         <span className="inline-flex items-center rounded-md bg-indigo-50 px-2.5 py-1 text-sm font-bold tracking-widest text-indigo-700 ring-1 ring-inset ring-indigo-200">
-                                            {shipment.destination_code.substring(0, 3).toUpperCase()}
+                                            {shipment.destination_code
+                                                .substring(0, 3)
+                                                .toUpperCase()}
                                         </span>
                                     ) : (
-                                        <span className="italic text-slate-300">—</span>
+                                        <span className="italic text-slate-300">
+                                            —
+                                        </span>
                                     )}
                                 </p>
                             </div>
-                            <Field label="Tujuan"       value={shipment.destination_name} />
+                            <Field
+                                label="Tujuan"
+                                value={shipment.destination_name}
+                            />
                             {shipment.destination && (
                                 <>
-                                    <Field label="Kabupaten/Kota" value={shipment.destination.kabupaten} />
-                                    <Field label="Kecamatan"      value={shipment.destination.kecamatan} />
+                                    <Field
+                                        label="Kabupaten/Kota"
+                                        value={shipment.destination.kabupaten}
+                                    />
+                                    <Field
+                                        label="Kecamatan"
+                                        value={shipment.destination.kecamatan}
+                                    />
                                 </>
                             )}
-                            <Field label="Layanan"       value={shipment.service} />
-                            <Field label="Berat"         value={shipment.weight ? `${shipment.weight} kg` : null} />
-                            <Field label="Nilai Kiriman" value={shipment.amount ? `Rp ${Number(shipment.amount).toLocaleString("id-ID")}` : null} />
-                            <Field label="Coding"        value={shipment.coding} />
-                            <Field label="Reciver Reasons" value={shipment.receiver_reason} />
+                            <Field label="Layanan" value={shipment.service} />
+                            <Field
+                                label="Berat"
+                                value={
+                                    shipment.weight
+                                        ? `${shipment.weight} kg`
+                                        : null
+                                }
+                            />
+                            {/* <Field
+                                label="Nilai Kiriman"
+                                value={
+                                    shipment.amount
+                                        ? `Rp ${Number(shipment.amount).toLocaleString("id-ID")}`
+                                        : null
+                                }
+                            /> */}
+                            <Field label="Coding" value={shipment.coding} />
+                            <Field
+                                label="Reciver Reasons"
+                                value={shipment.receiver_reason}
+                            />
+                            <ShipmentNotesPanel
+                                shipment={shipment}
+                                isAdmin={isAdmin}
+                            />
                         </div>
                     </div>
 
@@ -383,12 +621,17 @@ export default function ResiShow({ shipment, slaEvaluation }) {
                     <div className="space-y-5">
                         {/* Data Penerima */}
                         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                            <h2 className="mb-4 font-bold text-[#10264A]">Data Penerima</h2>
+                            <h2 className="mb-4 font-bold text-[#10264A]">
+                                Data Penerima
+                            </h2>
                             <div className="space-y-4">
-                                <Field label="Nama Penerima" value={shipment.consignee_name} />
-                                <Field label="Alamat 1"      value={shipment.adr1} />
-                                <Field label="Alamat 2"      value={shipment.adr2} />
-                                <Field label="Alamat 3"      value={shipment.adr3} />
+                                <Field
+                                    label="Nama Penerima"
+                                    value={shipment.consignee_name}
+                                />
+                                <Field label="Alamat 1" value={shipment.adr1} />
+                                <Field label="Alamat 2" value={shipment.adr2} />
+                                <Field label="Alamat 3" value={shipment.adr3} />
                             </div>
                         </div>
 
@@ -398,10 +641,16 @@ export default function ResiShow({ shipment, slaEvaluation }) {
                         {/* Lokasi GPS */}
                         {shipment.latlong && shipment.latlong !== "," && (
                             <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                                <h2 className="mb-3 font-bold text-[#10264A]">Lokasi GPS</h2>
-                                <p className="font-mono text-xs text-slate-500">{shipment.latlong}</p>
+                                <h2 className="mb-3 font-bold text-[#10264A]">
+                                    Lokasi GPS
+                                </h2>
+                                <p className="font-mono text-xs text-slate-500">
+                                    {shipment.latlong}
+                                </p>
                                 {(() => {
-                                    const [lat, lng] = (shipment.latlong || "").split(",").map(Number);
+                                    const [lat, lng] = (shipment.latlong || "")
+                                        .split(",")
+                                        .map(Number);
                                     if (!isNaN(lat) && !isNaN(lng)) {
                                         return (
                                             <a
@@ -422,7 +671,9 @@ export default function ResiShow({ shipment, slaEvaluation }) {
                         {/* Import Batch */}
                         {isAdmin && shipment.import_batch && (
                             <div className="rounded-2xl border border-slate-200 bg-slate-50 px-5 py-4">
-                                <p className="text-xs font-semibold text-slate-400">Import Batch</p>
+                                <p className="text-xs font-semibold text-slate-400">
+                                    Import Batch
+                                </p>
                                 <p className="mt-1 break-all font-mono text-xs text-slate-600">
                                     {shipment.import_batch}
                                 </p>
@@ -434,13 +685,17 @@ export default function ResiShow({ shipment, slaEvaluation }) {
                 {/* Foto POD */}
                 {photos.length > 0 && (
                     <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
-                        <h2 className="mb-5 font-bold text-[#10264A]">Foto POD ({photos.length} foto)</h2>
+                        <h2 className="mb-5 font-bold text-[#10264A]">
+                            Foto POD ({photos.length} foto)
+                        </h2>
                         <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
                             {photos.map((url, i) => (
                                 <button
                                     key={i}
                                     type="button"
-                                    onClick={() => setPreviewPhoto({ url, number: i + 1 })}
+                                    onClick={() =>
+                                        setPreviewPhoto({ url, number: i + 1 })
+                                    }
                                     aria-label={`Preview Foto POD ${i + 1}`}
                                     className="group relative aspect-square overflow-hidden rounded-xl border border-slate-200 bg-slate-100"
                                 >
@@ -448,10 +703,14 @@ export default function ResiShow({ shipment, slaEvaluation }) {
                                         src={url}
                                         alt={`Foto ${i + 1}`}
                                         className="h-full w-full object-cover transition group-hover:scale-105"
-                                        onError={(e) => { e.target.style.display = "none"; }}
+                                        onError={(e) => {
+                                            e.target.style.display = "none";
+                                        }}
                                     />
                                     <div className="absolute inset-0 flex items-center justify-center bg-slate-950/0 text-white opacity-0 transition group-hover:bg-slate-950/30 group-hover:opacity-100">
-                                        <span className="text-sm font-medium">🔍 Buka</span>
+                                        <span className="text-sm font-medium">
+                                            🔍 Buka
+                                        </span>
                                     </div>
                                 </button>
                             ))}
@@ -475,7 +734,8 @@ export default function ResiShow({ shipment, slaEvaluation }) {
                     >
                         <header className="flex items-center justify-between border-b border-slate-100 px-4 py-3 sm:px-5">
                             <h2 className="text-sm font-semibold text-[#10264A]">
-                                Foto POD {previewPhoto.number} dari {photos.length}
+                                Foto POD {previewPhoto.number} dari{" "}
+                                {photos.length}
                             </h2>
                             <button
                                 type="button"
@@ -483,8 +743,18 @@ export default function ResiShow({ shipment, slaEvaluation }) {
                                 aria-label="Tutup preview"
                                 className="flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-500 transition hover:bg-slate-50 hover:text-slate-800"
                             >
-                                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 6l12 12M18 6L6 18" />
+                                <svg
+                                    className="h-4 w-4"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth={2}
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M6 6l12 12M18 6L6 18"
+                                    />
                                 </svg>
                             </button>
                         </header>
@@ -503,8 +773,18 @@ export default function ResiShow({ shipment, slaEvaluation }) {
                                 rel="noreferrer"
                                 className="inline-flex items-center gap-2 rounded-xl bg-[#10264A] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#193965]"
                             >
-                                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
-                                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v12m0 0l-4-4m4 4l4-4M5 17v3h14v-3" />
+                                <svg
+                                    className="h-4 w-4"
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth={2}
+                                >
+                                    <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        d="M12 3v12m0 0l-4-4m4 4l4-4M5 17v3h14v-3"
+                                    />
                                 </svg>
                                 Unduh Gambar
                             </a>

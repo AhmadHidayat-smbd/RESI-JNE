@@ -23,6 +23,7 @@ class Shipment extends Model
         'weight',
         'amount',
         'coding',
+        'notes',
         'status',
         'tgl_received',
         'receiver_reason',

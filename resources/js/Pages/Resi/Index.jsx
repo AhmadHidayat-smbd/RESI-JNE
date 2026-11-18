@@ -21,10 +21,14 @@ function FilterDropdown({
     const normalizedSearch = search.trim().toLocaleLowerCase("id-ID");
     const filteredOptions = searchable
         ? options.filter((option) =>
-              option.label.toLocaleLowerCase("id-ID").includes(normalizedSearch),
+              option.label
+                  .toLocaleLowerCase("id-ID")
+                  .includes(normalizedSearch),
           )
         : options;
-    const selectedLabel = options.find((option) => option.value === value)?.label;
+    const selectedLabel = options.find(
+        (option) => option.value === value,
+    )?.label;
 
     useEffect(() => {
         if (!isOpen) return;
@@ -61,7 +65,9 @@ function FilterDropdown({
 
     return (
         <div className="min-w-0">
-            <span className="mb-1.5 block text-xs font-semibold text-slate-500">{label}</span>
+            <span className="mb-1.5 block text-xs font-semibold text-slate-500">
+                {label}
+            </span>
             <div ref={containerRef} className="relative">
                 <button
                     ref={triggerRef}
@@ -73,9 +79,20 @@ function FilterDropdown({
                     onClick={() => setIsOpen((open) => !open)}
                     className={`flex h-11 w-full items-center justify-between gap-2 rounded-xl border bg-slate-50 px-3 text-left text-sm outline-none transition hover:border-slate-300 focus:border-blue-800 focus:bg-white focus:ring-2 focus:ring-blue-900/10 ${value ? "border-blue-200 text-slate-800" : "border-slate-200 text-slate-500"}`}
                 >
-                    <span className="truncate">{selectedLabel || placeholder}</span>
-                    <svg aria-hidden="true" className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`} viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M5.22 7.22a.75.75 0 011.06 0L10 10.94l3.72-3.72a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.22 8.28a.75.75 0 010-1.06z" clipRule="evenodd" />
+                    <span className="truncate">
+                        {selectedLabel || placeholder}
+                    </span>
+                    <svg
+                        aria-hidden="true"
+                        className={`h-4 w-4 shrink-0 text-slate-400 transition-transform ${isOpen ? "rotate-180" : ""}`}
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                    >
+                        <path
+                            fillRule="evenodd"
+                            d="M5.22 7.22a.75.75 0 011.06 0L10 10.94l3.72-3.72a.75.75 0 111.06 1.06l-4.25 4.25a.75.75 0 01-1.06 0L5.22 8.28a.75.75 0 010-1.06z"
+                            clipRule="evenodd"
+                        />
                     </svg>
                 </button>
 
@@ -89,20 +106,31 @@ function FilterDropdown({
                                     viewBox="0 0 20 20"
                                     fill="currentColor"
                                 >
-                                    <path fillRule="evenodd" d="M8.5 3.5a5 5 0 103.16 8.87l3.73 3.72a.75.75 0 101.06-1.06l-3.72-3.73A5 5 0 008.5 3.5zm-3.5 5a3.5 3.5 0 117 0 3.5 3.5 0 01-7 0z" clipRule="evenodd" />
+                                    <path
+                                        fillRule="evenodd"
+                                        d="M8.5 3.5a5 5 0 103.16 8.87l3.73 3.72a.75.75 0 101.06-1.06l-3.72-3.73A5 5 0 008.5 3.5zm-3.5 5a3.5 3.5 0 117 0 3.5 3.5 0 01-7 0z"
+                                        clipRule="evenodd"
+                                    />
                                 </svg>
                                 <input
                                     autoFocus
                                     type="search"
                                     value={search}
-                                    onChange={(event) => setSearch(event.target.value)}
+                                    onChange={(event) =>
+                                        setSearch(event.target.value)
+                                    }
                                     placeholder={`Cari ${label}...`}
                                     aria-label={`Cari ${label}`}
                                     className="h-10 w-full rounded-xl border border-slate-200 bg-slate-50 pl-9 pr-3 text-sm outline-none placeholder:text-slate-400 focus:border-blue-700 focus:bg-white focus:ring-2 focus:ring-blue-900/10"
                                 />
                             </div>
                         )}
-                        <div id={`${id}-options`} role="listbox" aria-label={`Pilihan ${label}`} className={`${searchable ? "mt-2" : ""} max-h-56 overflow-y-auto`}>
+                        <div
+                            id={`${id}-options`}
+                            role="listbox"
+                            aria-label={`Pilihan ${label}`}
+                            className={`${searchable ? "mt-2" : ""} max-h-56 overflow-y-auto`}
+                        >
                             <button
                                 type="button"
                                 role="option"
@@ -125,7 +153,9 @@ function FilterDropdown({
                                 </button>
                             ))}
                             {searchable && filteredOptions.length === 0 && (
-                                <p className="px-3 py-3 text-center text-xs text-slate-400">Pilihan tidak ditemukan.</p>
+                                <p className="px-3 py-3 text-center text-xs text-slate-400">
+                                    Pilihan tidak ditemukan.
+                                </p>
                             )}
                         </div>
                     </div>
@@ -288,7 +318,12 @@ function StatCard({
     );
 }
 
-export default function ResiIndex({ shipments, filters = {}, summary = {}, destinationOptions = [] }) {
+export default function ResiIndex({
+    shipments,
+    filters = {},
+    summary = {},
+    destinationOptions = [],
+}) {
     const [search, setSearch] = useState(filters.search || "");
     const [statusFilter, setStatus] = useState(filters.status || "");
     const [actionFilter, setAction] = useState(filters.action || "");
@@ -307,23 +342,44 @@ export default function ResiIndex({ shipments, filters = {}, summary = {}, desti
     const { flash: pageFlash, auth } = usePage().props;
     const isAdmin = auth?.user?.role === "admin";
     const threeLcOptions = useMemo(
-        () => [...new Set(destinationOptions.map((option) => option.code).filter(Boolean))]
-            .map((code) => ({ value: code, label: code })),
+        () =>
+            [
+                ...new Set(
+                    destinationOptions
+                        .map((option) => option.code)
+                        .filter(Boolean),
+                ),
+            ].map((code) => ({ value: code, label: code })),
         [destinationOptions],
     );
     const kabupatenOptions = useMemo(() => {
         const availableDestinations = threeLcFilter
-            ? destinationOptions.filter((option) => option.code === threeLcFilter)
+            ? destinationOptions.filter(
+                  (option) => option.code === threeLcFilter,
+              )
             : destinationOptions;
 
-        return [...new Set(availableDestinations.map((option) => option.kabupaten).filter(Boolean))];
+        return [
+            ...new Set(
+                availableDestinations
+                    .map((option) => option.kabupaten)
+                    .filter(Boolean),
+            ),
+        ];
     }, [destinationOptions, threeLcFilter]);
     const hasActiveFilters = Boolean(
-        search || statusFilter || actionFilter || dateFrom || dateTo || threeLcFilter || kabupatenFilter,
+        search ||
+        statusFilter ||
+        actionFilter ||
+        dateFrom ||
+        dateTo ||
+        threeLcFilter ||
+        kabupatenFilter,
     );
-    const returnToUrl = typeof window === "undefined"
-        ? "/resi"
-        : `${window.location.pathname}${window.location.search}`;
+    const returnToUrl =
+        typeof window === "undefined"
+            ? "/resi"
+            : `${window.location.pathname}${window.location.search}`;
 
     useEffect(() => {
         setSearch(filters.search || "");
@@ -409,19 +465,20 @@ export default function ResiIndex({ shipments, filters = {}, summary = {}, desti
         if (e.key === "Enter") applyFilters();
     };
 
-    const handleExport = () => startExport({
-        filters: {
-            status: statusFilter,
-            action: actionFilter,
-            search,
-            date_from: dateFrom,
-            date_to: dateTo,
-            three_lc: threeLcFilter,
-            kabupaten: kabupatenFilter,
-        },
-        summaryTotal: summary.total || shipments.total || 0,
-        filteredTotal: shipments.total || 0,
-    });
+    const handleExport = () =>
+        startExport({
+            filters: {
+                status: statusFilter,
+                action: actionFilter,
+                search,
+                date_from: dateFrom,
+                date_to: dateTo,
+                three_lc: threeLcFilter,
+                kabupaten: kabupatenFilter,
+            },
+            summaryTotal: summary.total || shipments.total || 0,
+            filteredTotal: shipments.total || 0,
+        });
 
     // Klik stat card → langsung filter berdasarkan status
     const filterByStatus = (status) => {
@@ -472,9 +529,11 @@ export default function ResiIndex({ shipments, filters = {}, summary = {}, desti
                 show={exportLoading}
                 type="export"
                 message="Menyiapkan File Excel..."
-                subMessage={exportProgress
-                    ? "Menerima file Excel dari server..."
-                    : "Server sedang menyiapkan file Excel. Mohon tunggu."}
+                subMessage={
+                    exportProgress
+                        ? "Menerima file Excel dari server..."
+                        : "Server sedang menyiapkan file Excel. Mohon tunggu."
+                }
                 progress={exportProgress}
             />
 
@@ -537,16 +596,21 @@ export default function ResiIndex({ shipments, filters = {}, summary = {}, desti
                                     )}
                                 </>
                             ) : (
-                                <span>Export Semua Resi ({summary.total?.toLocaleString("id-ID") || 0})</span>
+                                <span>
+                                    Export Semua Resi (
+                                    {summary.total?.toLocaleString("id-ID") ||
+                                        0}
+                                    )
+                                </span>
                             )}
                         </button>
                         {isAdmin && (
-                        <Link
-                            href="/resi/import"
-                            className="inline-flex items-center gap-2 rounded-xl bg-[#10264A] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-950/10 transition hover:bg-[#193965]"
-                        >
-                            <span>⬆</span> Import Data
-                        </Link>
+                            <Link
+                                href="/resi/import"
+                                className="inline-flex items-center gap-2 rounded-xl bg-[#10264A] px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-blue-950/10 transition hover:bg-[#193965]"
+                            >
+                                <span>⬆</span> Import Data
+                            </Link>
                         )}
                     </div>
                 </section>
@@ -574,7 +638,12 @@ export default function ResiIndex({ shipments, filters = {}, summary = {}, desti
                                 { preserveState: true, replace: true },
                             );
                         }}
-                        active={!statusFilter && !actionFilter && !threeLcFilter && !kabupatenFilter}
+                        active={
+                            !statusFilter &&
+                            !actionFilter &&
+                            !threeLcFilter &&
+                            !kabupatenFilter
+                        }
                     />
                     <StatCard
                         label="Berhasil"
@@ -647,10 +716,12 @@ export default function ResiIndex({ shipments, filters = {}, summary = {}, desti
                     <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7">
                         {/* Search */}
                         <div className="min-w-0 xl:col-span-2">
-                            <label className="mb-1.5 block text-xs font-semibold text-slate-500">Cari resi</label>
+                            <label className="mb-1.5 block text-xs font-semibold text-slate-500">
+                                Cari resi
+                            </label>
                             <div className="relative">
                                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                                🔍
+                                    🔍
                                 </span>
                                 <input
                                     type="text"
@@ -683,7 +754,10 @@ export default function ResiIndex({ shipments, filters = {}, summary = {}, desti
                             value={kabupatenFilter}
                             onChange={setKabupaten}
                             placeholder="Semua Kabupaten"
-                            options={kabupatenOptions.map((kabupaten) => ({ value: kabupaten, label: kabupaten }))}
+                            options={kabupatenOptions.map((kabupaten) => ({
+                                value: kabupaten,
+                                label: kabupaten,
+                            }))}
                             searchable={false}
                         />
 
@@ -699,7 +773,9 @@ export default function ResiIndex({ shipments, filters = {}, summary = {}, desti
 
                         {/* Date range */}
                         <label className="block min-w-0">
-                            <span className="mb-1.5 block text-xs font-semibold text-slate-500">Dari tanggal</span>
+                            <span className="mb-1.5 block text-xs font-semibold text-slate-500">
+                                Dari tanggal
+                            </span>
                             <input
                                 type="date"
                                 value={dateFrom}
@@ -708,7 +784,9 @@ export default function ResiIndex({ shipments, filters = {}, summary = {}, desti
                             />
                         </label>
                         <label className="block min-w-0">
-                            <span className="mb-1.5 block text-xs font-semibold text-slate-500">Sampai tanggal</span>
+                            <span className="mb-1.5 block text-xs font-semibold text-slate-500">
+                                Sampai tanggal
+                            </span>
                             <input
                                 type="date"
                                 value={dateTo}
@@ -789,7 +867,9 @@ export default function ResiIndex({ shipments, filters = {}, summary = {}, desti
                         <table className="w-full min-w-[900px] text-left text-sm">
                             <thead className="bg-slate-50/80 text-xs font-semibold uppercase tracking-wide text-slate-400">
                                 <tr>
-                                    <th className="w-14 px-5 py-3.5 text-center">No.</th>
+                                    <th className="w-14 px-5 py-3.5 text-center">
+                                        No.
+                                    </th>
                                     <th className="px-5 py-3.5">AWB / Resi</th>
                                     <th className="px-5 py-3.5">Penerima</th>
                                     <th className="px-5 py-3.5">
@@ -814,7 +894,10 @@ export default function ResiIndex({ shipments, filters = {}, summary = {}, desti
                                             className="transition hover:bg-slate-50/70"
                                         >
                                             <td className="whitespace-nowrap px-5 py-3.5 text-center text-xs font-medium text-slate-400">
-                                                {((shipments.from ?? 1) + index).toLocaleString("id-ID")}
+                                                {(
+                                                    (shipments.from ?? 1) +
+                                                    index
+                                                ).toLocaleString("id-ID")}
                                             </td>
                                             <td className="whitespace-nowrap px-5 py-3.5 font-semibold text-[#244775]">
                                                 {row.awb || "—"}
@@ -836,15 +919,21 @@ export default function ResiIndex({ shipments, filters = {}, summary = {}, desti
                                             <td className="whitespace-nowrap px-5 py-3.5">
                                                 {row.destination_code ? (
                                                     <span className="inline-flex items-center rounded-md bg-indigo-50 px-2 py-1 text-xs font-bold tracking-widest text-indigo-700 ring-1 ring-inset ring-indigo-200">
-                                                        {row.destination_code.substring(0, 3).toUpperCase()}
+                                                        {row.destination_code
+                                                            .substring(0, 3)
+                                                            .toUpperCase()}
                                                     </span>
                                                 ) : (
-                                                    <span className="text-slate-300">—</span>
+                                                    <span className="text-slate-300">
+                                                        —
+                                                    </span>
                                                 )}
                                             </td>
                                             <td className="whitespace-nowrap px-5 py-3.5 text-xs text-slate-600">
                                                 {row.destination?.kabupaten || (
-                                                    <span className="text-slate-300">—</span>
+                                                    <span className="text-slate-300">
+                                                        —
+                                                    </span>
                                                 )}
                                             </td>
                                             <td className="whitespace-nowrap px-5 py-3.5 text-xs text-slate-500">
@@ -855,14 +944,23 @@ export default function ResiIndex({ shipments, filters = {}, summary = {}, desti
                                             </td> */}
                                             <td className="px-5 py-3.5">
                                                 <div className="flex flex-col items-start gap-1.5">
-                                                    <StatusBadge status={row.status} />
+                                                    <StatusBadge
+                                                        status={row.status}
+                                                    />
                                                     {row.action && (
-                                                        <span className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
-                                                            row.action === "hold"
-                                                                ? "bg-orange-50 text-orange-600 ring-1 ring-orange-200"
-                                                                : "bg-red-50 text-red-600 ring-1 ring-red-200"
-                                                        }`}>
-                                                            {row.action === "hold" ? "✋" : "🚫"} {row.action}
+                                                        <span
+                                                            className={`inline-flex items-center gap-1 whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${
+                                                                row.action ===
+                                                                "hold"
+                                                                    ? "bg-orange-50 text-orange-600 ring-1 ring-orange-200"
+                                                                    : "bg-red-50 text-red-600 ring-1 ring-red-200"
+                                                            }`}
+                                                        >
+                                                            {row.action ===
+                                                            "hold"
+                                                                ? "✋"
+                                                                : "🚫"}{" "}
+                                                            {row.action}
                                                         </span>
                                                     )}
                                                 </div>
@@ -891,11 +989,16 @@ export default function ResiIndex({ shipments, filters = {}, summary = {}, desti
                                                 {isAdmin ? (
                                                     <>
                                                         Coba reset filter atau{" "}
-                                                        <Link href="/resi/import" className="text-[#10264A] underline">
+                                                        <Link
+                                                            href="/resi/import"
+                                                            className="text-[#10264A] underline"
+                                                        >
                                                             import data baru
                                                         </Link>
                                                     </>
-                                                ) : "Coba reset filter untuk menampilkan data lainnya."}
+                                                ) : (
+                                                    "Coba reset filter untuk menampilkan data lainnya."
+                                                )}
                                             </p>
                                         </td>
                                     </tr>
