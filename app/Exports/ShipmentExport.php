@@ -32,16 +32,18 @@ class ShipmentExport implements
     private Builder $query;
     private int $rowNumber = 0;
     private ?string $statusTitle;
+    private ShipmentSlaEvaluator $slaEvaluator;
 
     public function __construct(Builder $query, ?string $statusTitle = null)
     {
         $this->query = $query;
         $this->statusTitle = $statusTitle;
+        $this->slaEvaluator = new ShipmentSlaEvaluator();
     }
 
     public function query(): Builder
     {
-        return $this->query;
+         return $this->query->with('destination:id,syscode,sla_days');
     }
 
     public function chunkSize(): int
@@ -71,7 +73,7 @@ class ShipmentExport implements
             'Adr3',            // I
             'Origin Code',     // J
             'Destination Code',// K
-            'Detination Name', // L  (sesuai ejaan file asli)
+            'Detination Name', // L  
             'Service',         // M
             'Weight',          // N
             'Amount',          // O
@@ -97,6 +99,9 @@ class ShipmentExport implements
             'Aksi',            // AI
             'Catatan Aksi',    // AJ
             'Waktu Aksi',      // AK
+            'SLA (Hari)',       // AL
+            'Keterangan SLA',   // AM
+            'Catatan',          // AN
         ];
     }
 
@@ -121,6 +126,9 @@ class ShipmentExport implements
         $waktuAksi = $shipment->actioned_at
             ? Carbon::parse($shipment->actioned_at)->format('d/m/Y H:i')
             : '';
+
+        $slaEvaluation = $this->slaEvaluator->evaluate($shipment);
+        $slaDays = $shipment->destination?->sla_days;
 
         return [
             $this->rowNumber,                                             // No (A)
@@ -159,7 +167,10 @@ class ShipmentExport implements
             $shipment->runsheet_no ?: '',                                 // Runsheet No (AH)
             $shipment->action ? ucfirst($shipment->action) : '',          // Aksi (AI)
             $shipment->action_note ?: '',                                 // Catatan Aksi (AJ)
-            $waktuAksi,                                                   // Waktu Aksi (AK)
+            $waktuAksi,    
+            $slaDays !== null ? (int) $slaDays : '',                      // SLA (AL)
+            $slaEvaluation['summary'] ?? '',                              // Keterangan SLA (AM)
+            $shipment->notes ?: '',                                       // Catatan (AN)                                              
         ];
     }
 
@@ -215,12 +226,15 @@ class ShipmentExport implements
             'AI' => 12,  // Aksi
             'AJ' => 28,  // Catatan Aksi
             'AK' => 18,  // Waktu Aksi
+            'AL' => 12, // SLA (Hari)
+            'AM' => 38, // Keterangan SLA
+            'AN' => 40, // Catatan
         ];
     }
 
     public function styles(Worksheet $sheet): array
     {
-        $lastCol = 'AK'; // Kolom terakhir
+        $lastCol = 'AN';// Kolom terakhir
 
         // 1. Header Styling (Baris 1) — JNE Navy dengan teks putih tebal
         $sheet->getStyle("A1:{$lastCol}1")->applyFromArray([
@@ -266,6 +280,7 @@ class ShipmentExport implements
             $sheet->getStyle("AD2:AG{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("AI2:AI{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
             $sheet->getStyle("AK2:AK{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
+            $sheet->getStyle("AL2:AL{$lastRow}")->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
         }
 
         return [];

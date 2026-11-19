@@ -6,7 +6,6 @@ use App\Exports\ShipmentExport;
 use App\Imports\ShipmentImport;
 use App\Models\Destination;
 use App\Models\Shipment;
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -18,6 +17,7 @@ use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
 use Maatwebsite\Excel\Imports\HeadingRowFormatter;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use App\Exports\ShipmentSlaEvaluator;
 
 class ShipmentController extends Controller
 {
@@ -243,53 +243,8 @@ class ShipmentController extends Controller
 
         return Inertia::render('Resi/Show', [
             'shipment' => $shipment,
-            'slaEvaluation' => $this->evaluateDestinationSla($shipment),
+            'slaEvaluation' => app(ShipmentSlaEvaluator::class)->evaluate($shipment),
         ]);
-    }
-
-    private function evaluateDestinationSla(Shipment $shipment): array
-    {
-        $status = mb_strtolower(trim((string) $shipment->status));
-        $successfulStatuses = ['success', 'sukses', 'berhasil', 'delivered', 'diterima', 'terkirim', 'pod'];
-
-        if (!$shipment->is_success && !in_array($status, $successfulStatuses, true)) {
-            return ['state' => 'pending', 'message' => 'Evaluasi SLA tersedia setelah status resi Success.'];
-        }
-
-        $destination = $shipment->destination;
-        if (!$destination || !$destination->sla_days) {
-            return ['state' => 'unavailable', 'message' => 'SLA untuk destination ini belum diisi.'];
-        }
-
-        if (!$shipment->tgl_jam_entry || !$shipment->tgl_received) {
-            return [
-                'state' => 'unavailable',
-                'sla_days' => $destination->sla_days,
-                'message' => 'Tanggal entry atau tanggal diterima belum tersedia.',
-            ];
-        }
-
-        $entryDate = Carbon::parse($shipment->tgl_jam_entry)->startOfDay();
-        $receivedDate = Carbon::parse($shipment->tgl_received)->startOfDay();
-
-        if ($receivedDate->lt($entryDate)) {
-            return [
-                'state' => 'unavailable',
-                'sla_days' => $destination->sla_days,
-                'message' => 'Tanggal diterima lebih awal daripada tanggal entry. Periksa data tanggal resi.',
-            ];
-        }
-
-        // Hari entry dihitung sebagai hari pertama masa pengiriman. +1 jika di hitung hari itu
-        $deliveryDays = (int) $entryDate->diffInDays($receivedDate);
-        $difference = $deliveryDays - $destination->sla_days;
-
-        return [
-            'state' => $difference > 0 ? 'late' : ($difference < 0 ? 'early' : 'on_time'),
-            'sla_days' => $destination->sla_days,
-            'delivery_days' => $deliveryDays,
-            'difference_days' => abs($difference),
-        ];
     }
 
     // ─── Update Aksi Hold / Cancel (tidak mengubah status asli) ──────────────
